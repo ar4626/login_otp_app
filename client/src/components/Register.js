@@ -1,13 +1,16 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import avatar from '../assets/profile.png'
 import { Toaster } from 'react-hot-toast'
 import { useFormik } from 'formik'
-import { passwordValidate } from '../helper/validate'
+import { registerValidation } from '../helper/validate'
+import convertToBase64 from '../helper/convert'
 
 import styles from '../styles/username.module.css'
 
 const Register = () => {
+
+  const [file, setFile] =  useState();
 
   const formik = useFormik({
     initialValues: {
@@ -19,20 +22,26 @@ const Register = () => {
       password: '',
       confirmPassword: ''
     },
-    validate: passwordValidate,
+    validate: registerValidation,
     validateOnChange: false,
     validateOnBlur: false,
     onSubmit: async values => {
+      values = await Object.assign(values, {profile:file || ''});
       console.log(values);
     }
   })
 
+  //handler for uploading the profile image
+  const onUpload = async e => {
+    const base64 = await convertToBase64(e.target.files[0]);
+    setFile(base64);
 
+  }
 
   return (
     <div className='container mx-auto'>
       <Toaster position='top-center' reverseOrder={false}></Toaster>
-      <div className='flex justify-center items-center h-screen'>
+      <div className='flex justify-center items-center py-14'>
         <div className={`${styles.glass} ${styles.autoHeight}`} style={{ width: '50%' }}>
 
           <div className='title flex flex-col items-center'>
@@ -46,9 +55,9 @@ const Register = () => {
           <form className='py-1' onSubmit={formik.handleSubmit}>
             <div className='profile flex justify-center py-4'>
               <label htmlFor='profile'>
-                <img src={avatar} alt='avtar ' className={styles.profile_img} />
+                <img src={file || avatar} alt='avtar ' className={styles.profile_img} />
               </label>
-              <input type='file' id='profile' name='profile' />
+              <input onChange={onUpload} type='file' id='profile' name='profile' />
             </div>
             <div className='text-box flex flex-col items-center gap-6'>
               <div className='flex'>
@@ -64,7 +73,7 @@ const Register = () => {
               </div>
               <div className='flex'>
                 <input {...formik.getFieldProps('password')} className={styles.textbox} type='password' style={{marginRight:"10px"}} placeholder='Password*' />
-                <input {...formik.getFieldProps('comfirmPassword')} className={styles.textbox} type='password' placeholder='Confirm Password*' />
+                <input {...formik.getFieldProps('confirmPassword')} className={styles.textbox} type='password' placeholder='Confirm Password*' />
               </div>
               <button className={styles.btn} type='submit'>Sign Up</button>
             </div>
